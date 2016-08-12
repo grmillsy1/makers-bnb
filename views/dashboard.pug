@@ -1,0 +1,20 @@
+h1 Welcome!
+
+p= email
+
+
+form(action="/users/sessions", method="post")
+  div.input
+  div.actions
+  input(type="submit", value="Log out")
+
+form(action="/", method="get")
+  div.input
+  div.actions
+  input(type="submit", value="Go Home")
+
+button(onclick="listing()") View listings
+script.
+  function listing() {
+    window.location.href = '/listings'
+    };

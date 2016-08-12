@@ -1,11 +1,11 @@
 var express = require('express');
 var router = express.Router();
-var userDB = require('../models/userDB')
-var flash = require('connect-flash')
-var bcrypt = require('bcrypt')
-var clientSession = require('client-sessions')
+var clientSession = require('client-sessions');
+var bcrypt = require('bcrypt');
+var flash = require('connect-flash');
+var user = require('../models/user');
+var getUsers = require('../models/getUsers');
 
-/* GET users listing. */
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });
@@ -16,39 +16,48 @@ router.get('/new', function(req, res, next) {
 
 router.post('/new', function(req, res, next) {
   if (req.param('password')[0] !== req.param('password')[1]) {
-    reg.flash('error', 'Passwords do not match');
+    req.flash('error', 'Passwords do not match');
     res.redirect('/users/new');
-    return;
+    return
   } else {
-    userDB.save({
+    user.save({
       name: req.param('name'),
-      username: req.param('username'),
+      userName: req.param('userName'),
       email: req.param('email'),
-      password: bcrypt.hashSync(req.param('password')[0], bcrypt.genSaltSync(8))
-
+      password: bcrypt.hashSync(req.param('password')[0], (8))
     });
     res.redirect('/users');
   }
 });
 
 router.get('/login', function(req, res, next) {
-  res.render('logIn', { title: 'title' })
+  res.render('login', { title: 'title' })
 });
 
-router.post('/login', function(req, res, next) {
- userDB.findOne({ email: req.body.email }, function(err, user) {
-   if (!user) {
-     res.render('login.pug', { error: 'Invalid email or password.' });
-   } else {
-     if (req.body.password === user.password) {
-       // sets a cookie with the user's info
-       req.session.user = user;
-       res.redirect('/listings');
-     } else {
-       res.render('login.pug', { error: 'Invalid email or password.' });
+router.post('/login', function(req, res, next){
+  getUsers.filter({email: req.param('email')}).run().then(function(result){
+    var nonHashedPassword = req.param('password');
+     var hashedPassword = result[0].password;
+     if (bcrypt.compareSync(nonHashedPassword, hashedPassword)) {
+       console.log('great success');
+       req.session.email = req.param('email');
+       req.session.userID = result[0].id;
+       res.redirect('/users/dashboard');
      }
-   }
- });
+     else {
+       console.log('sad failure :(');
+       res.redirect('/users/login');
+     }
+  });
+});
+
+router.get('/dashboard', function(req, res, next){
+  res.render('dashboard', { email: req.session.email} );
+});
+
+router.post('/sessions', function(req, res, next){
+  delete req.session.email;
+  res.redirect('/users/dashboard');
 });
 
 module.exports = router;

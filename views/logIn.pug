@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h1= Hello 
+  h1= Hello
   p Welcome to log in
 
   form(action="/users/login", method="post")
@@ -14,3 +14,8 @@ block content
     div.input
     div.actions
       input(type="submit", value="Log in")
+
+    form(action="/", method="get")
+      div.input
+      div.actions
+      input(type="submit", value="Go Home")
